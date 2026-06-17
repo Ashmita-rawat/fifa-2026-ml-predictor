@@ -1,6 +1,6 @@
 # FIFA World Cup 2026 - ML Predictor
 
-I built this because world cup is starting june 11 and I wanted to see if I could predict who wins using actual machine learning!!
+I built this because world cup is starting June 11 and I wanted to see if I could predict who wins using actual machine learning!!
 
 live demo: https://ashmita-rawat.github.io/fifa-2026-ml-predictor/
 
@@ -107,3 +107,14 @@ data: Fjelstul, Joshua C. (2022). The Fjelstul World Cup Database.
 license: CC-BY-SA 4.0
 source: https://github.com/jfjelstul/worldcup
 
+---
+
+## note
+
+This model is trained on 2018 and 2022 world cup data only - it does not update with 2026 match results in real time
+
+So, the predictions are based on historical team strength, not whats happening in the tournament right now.
+
+That said - feel free to create your own bracket, prove the model wrong, or take live 2026 matches into consideration when making your picks. 
+
+Upsets are literally happening as you read this!!!
