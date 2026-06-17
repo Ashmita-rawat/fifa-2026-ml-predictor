@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FIFA 2026 · ML Predictor</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d0d0d;color:#e0e0e0;font-family:Arial,sans-serif;font-size:14px;line-height:1.5}
+
+nav{background:#111;border-bottom:1px solid #333;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;position:sticky;top:0;z-index:200}
+.nav-logo{font-size:15px;font-weight:bold;color:#aaff00;letter-spacing:.02em}
+.nav-tabs{display:flex;gap:4px;flex-wrap:wrap}
+.nav-tab{padding:5px 12px;border:1px solid #444;background:#1a1a1a;color:#aaa;font-family:Arial,sans-serif;font-size:12px;cursor:pointer;border-radius:3px}
+.nav-tab:hover{background:#222;color:#e0e0e0}
+.nav-tab.active{background:#aaff00;color:#000;border-color:#aaff00;font-weight:bold}
+.nav-tab.locked{opacity:.35;cursor:default}
+.nav-status{font-size:11px;color:#666}
+.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#444;margin-right:4px;vertical-align:middle}
+.status-dot.on{background:#aaff00}
+
+.hero-band{background:#111;border-bottom:1px solid #333;padding:23px 20px 17px}
+.hero-inner{max-width:960px;margin:0 auto}
+.hero-h{font-size:26px;font-weight:bold;color:#aaff00;line-height:1.2}
+.hero-sub{font-size:13px;color:#888;margin-top:8px;max-width:580px;line-height:1.6}
+.hero-pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pill{display:inline-block;padding:2px 8px;border:1px solid #333;border-radius:2px;font-size:11px;color:#666}
+.hero-stats{display:none}
+
+main{max-width:960px;margin:0 auto;padding:0 20px 60px}
+.page{display:none;padding-top:24px}
+.page.active{display:block}
+.sec-label{font-size:11px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid #222}
+
+.formula-box{background:#111;border:1px solid #333;padding:12px 16px;font-family:Arial,sans-serif;font-size:12px;color:#aaff00;margin-bottom:15px;line-height:1.8}
+.train-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
+.info-card{background:#111;border:1px solid #333;padding:16px}
+.info-card h3{font-size:12px;font-weight:bold;color:#aaff00;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.info-card p{font-size:12px;color:#888;line-height:1.7}
+.big-btn{width:100%;padding:11px;background:#aaff00;color:#000;border:none;font-family:Arial,sans-serif;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:16px;letter-spacing:.03em}
+.big-btn:hover:not(:disabled){background:#ccff44}
+.big-btn:disabled{background:#333;color:#666;cursor:default}
+.chart-card{background:#111;border:1px solid #333;padding:16px;margin-bottom:16px;display:none}
+.chart-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chart-hdr span{font-size:12px;color:#888}
+.chart-hdr b{font-size:11px;color:#aaff00;font-family:Arial,sans-serif}
+.chart-wrap{height:150px;position:relative}
+.tv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.tv-stat{background:#1a1a1a;border:1px solid #333;padding:8px;text-align:center}
+.tv-stat .v{font-size:20px;font-weight:bold;color:#aaff00}
+.tv-stat .l{font-size:10px;color:#666;text-transform:uppercase;margin-top:2px}
+.weights-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.w-card{background:#111;border:1px solid #333;padding:12px;text-align:center}
+.w-card .wn{font-size:10px;color:#666;text-transform:uppercase;margin-bottom:4px}
+.w-card .wv{font-size:22px;font-weight:bold;color:#aaff00;font-family:Arial,sans-serif}
+.w-card .wbar{height:4px;background:#222;margin-top:8px;overflow:hidden}
+.w-card .wfill{height:100%;background:#aaff00;transition:width .6s}
+.go-btn{width:100%;padding:10px;background:#1a1a1a;color:#aaff00;border:1px solid #aaff00;font-family:Arial,sans-serif;font-size:13px;cursor:pointer}
+.go-btn:hover{background:#222}
+
+.groups-intro{font-size:12px;color:#888;margin-bottom:16px;padding:10px 12px;background:#111;border:1px solid #333;line-height:1.6}
+.groups-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.g-card{background:#111;border:1px solid #333}
+.g-header{background:#1a1a1a;padding:7px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #333}
+.g-label{font-size:12px;font-weight:bold;color:#aaff00;text-transform:uppercase;letter-spacing:.05em}
+.g-done{font-size:10px;color:#aaff00;font-weight:bold;display:none}
+.g-card.complete .g-done{display:block}
+.g-card.complete{border-color:#aaff00}
+.team-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid #222;cursor:pointer;gap:6px}
+.team-row:last-child{border-bottom:none}
+.team-row:hover{background:#1a1a1a}
+.team-row.picked{background:#1a1f00;border-left:3px solid #aaff00}
+.team-row.runner{background:#00111a;border-left:3px solid #aaff00}
+.team-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.t-code{font-size:10px;font-weight:bold;color:#666;min-width:28px;font-family:Arial,sans-serif}
+.t-name{font-size:12px;color:#ddd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t-elo{font-size:10px;color:#555;font-family:Arial,sans-serif;flex-shrink:0}
+.pick-dot{width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0}
+.team-row.picked .pick-dot{background:#aaff00}
+.team-row.runner .pick-dot{background:#aaff00}
+.g-legend{display:flex;gap:10px;padding:5px 10px;border-top:1px solid #222;background:#151515}
+.leg{display:flex;align-items:center;gap:4px;font-size:10px;color:#666}
+.leg-dot{width:6px;height:6px;border-radius:50%}
+.next-phase-btn{margin-top:16px;width:100%;padding:11px;background:#aaff00;color:#000;border:none;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;cursor:pointer;display:none}
+.next-phase-btn:hover{background:#ccff44}
+.next-phase-btn.show{display:block}
+
+.bracket-wrap{overflow-x:auto;padding-bottom:12px}
+.bracket{display:flex;gap:0;align-items:flex-start;min-width:880px}
+.round-col{flex:1;padding:0 4px}
+.round-title{font-size:10px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.08em;text-align:center;padding:6px 0;margin-bottom:6px;border-bottom:1px solid #333}
+.matchup{background:#111;border:1px solid #333;margin-bottom:8px}
+.matchup.done{border-color:#555}
+.mu-team{display:flex;align-items:center;gap:6px;padding:7px 8px;cursor:pointer;border-bottom:1px solid #222}
+.mu-team:last-child{border-bottom:none}
+.mu-team:hover{background:#1a1a1a}
+.mu-team.winner{background:#1a1f00;font-weight:bold}
+.mu-team.loser{opacity:.3}
+.mu-team.tbd{cursor:default;opacity:.3}
+.mu-code{font-size:10px;font-weight:bold;color:#555;min-width:28px;font-family:Arial,sans-serif}
+.mu-name{font-size:12px;flex:1;color:#ddd}
+.mu-prob{font-size:10px;color:#aaff00;margin-left:auto;font-family:Arial,sans-serif}
+.mu-vs{height:1px;background:#333;font-size:0;padding:0;overflow:hidden}
+.final-matchup .mu-team{padding:10px}
+.final-matchup .mu-name{font-size:13px}
+.champ-display{background:#111;border:2px solid #aaff00;padding:24px;text-align:center;margin-top:16px}
+.champ-name-big{font-size:28px;font-weight:bold;color:#aaff00}
+.champ-conf{font-size:12px;color:#888;margin-top:6px}
+.placeholder-bracket{text-align:center;padding:40px 20px;font-size:12px;color:#555;border:1px dashed #333}
+
+.my-pick-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.pick-summary-card{background:#111;border:1px solid #333;padding:18px}
+.pick-summary-card h3{font-size:11px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.big-pct{font-size:40px;font-weight:bold;color:#aaff00;line-height:1}
+.confidence-label{font-size:12px;color:#888;margin-top:4px}
+.my-path{display:flex;flex-direction:column;gap:5px}
+.path-step{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#1a1a1a;border:1px solid #333;font-size:12px}
+.path-step .ps-round{font-size:10px;color:#666;min-width:56px;font-family:Arial,sans-serif}
+.path-step .ps-team{font-weight:bold;flex:1;color:#ddd}
+.path-step .ps-prob{font-size:10px;color:#aaff00;font-family:Arial,sans-serif}
+.path-step.trophy{background:#1a1f00;border-color:#aaff00}
+.sim-compare{background:#111;border:1px solid #333;padding:18px;margin-bottom:16px}
+.sim-compare h3{font-size:11px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.compare-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+.cmp-code{font-size:10px;font-weight:bold;color:#555;min-width:30px;font-family:Arial,sans-serif}
+.cmp-name{flex:1;font-weight:bold;color:#ddd}
+.cmp-bar-w{flex:2;height:4px;background:#222;overflow:hidden}
+.cmp-bar{height:100%;background:#aaff00;transition:width .8s ease}
+.cmp-pct{font-size:11px;color:#aaa;min-width:38px;text-align:right;font-family:Arial,sans-serif}
+.cmp-yours{font-size:10px;min-width:28px;text-align:right}
+.yours-tag{background:#1a1f00;color:#aaff00;padding:1px 5px;border:1px solid #aaff00;font-size:9px;font-weight:bold}
+.run-mc-btn{width:100%;padding:10px;background:#1a1a1a;color:#aaff00;border:1px solid #aaff00;font-family:Arial,sans-serif;font-size:13px;font-weight:bold;cursor:pointer;margin-bottom:12px}
+.run-mc-btn:hover{background:#222}
+.run-mc-btn:disabled{color:#444;border-color:#333;cursor:default}
+
+.prog{height:3px;background:#222;overflow:hidden;display:none;margin-bottom:12px}
+.prog-fill{height:100%;background:#aaff00;width:0%;transition:width .08s}
+
+.insight-card{background:#111;border:1px solid #333;padding:20px;margin-bottom:16px}
+.insight-card h3{font-size:11px;font-weight:bold;color:#aaff00;text-transform:uppercase;letter-spacing:.06em;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #333}
+.insight-section{margin-bottom:18px}
+.insight-section:last-child{margin-bottom:0}
+.insight-label{font-size:10px;font-weight:bold;color:#666;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px}
+.insight-why{font-size:12px;color:#999;line-height:1.8;padding:12px 14px;background:#1a1a1a;border-left:3px solid #aaff00}
+.insight-why b{color:#e0e0e0}
+.insight-why .num{color:#aaff00;font-family:Arial,sans-serif;font-weight:bold}
+.insight-why .num2{color:#aaff00;font-family:Arial,sans-serif;font-weight:bold}
+.feat-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #222}
+.feat-row:last-child{border-bottom:none}
+.feat-name{font-size:11px;color:#888;min-width:130px;font-family:Arial,sans-serif}
+.feat-bar-w{flex:1;height:4px;background:#222;overflow:hidden}
+.feat-bar{height:100%;background:#aaff00;transition:width .8s ease}
+.feat-val{font-size:11px;color:#aaff00;min-width:50px;text-align:right;font-family:Arial,sans-serif}
+.feat-desc{font-size:11px;color:#666;min-width:100px;text-align:right}
+.hist-match{display:flex;align-items:center;gap:8px;padding:7px 8px;background:#1a1a1a;border:1px solid #333;margin-bottom:4px;font-size:12px}
+.hist-match .hm-year{font-size:10px;color:#666;min-width:30px;font-family:Arial,sans-serif}
+.hist-match .hm-teams{flex:1;color:#aaa}
+.hist-match .hm-teams b{color:#e0e0e0}
+.hist-match .hm-res{font-size:10px;padding:2px 6px;font-weight:bold}
+.hm-w{background:#1a1f00;color:#aaff00;border:1px solid #aaff00;min-width:48px;text-align:center;display:inline-block}
+.hm-l{background:#1f0000;color:#ff5555;border:1px solid #ff5555;min-width:48px;text-align:center;display:inline-block}
+.hm-d{background:#1a1a1a;color:#666;border:1px solid #444;min-width:48px;text-align:center;display:inline-block}
+.upset-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:2px 7px;font-size:10px;font-weight:bold;margin-right:4px;min-width:110px;text-align:center}
+.upset-pill.yes{background:#1f0000;color:#ff5555;border:1px solid #ff5555}
+.upset-pill.no{background:#1a1f00;color:#aaff00;border:1px solid #aaff00}
+.upset-pill.tight{background:#1a1500;color:#ffcc00;border:1px solid #ffcc00}
+
+@media(max-width:700px){
+  nav,main,.hero-band .hero-inner{padding-left:12px;padding-right:12px}
+  .groups-grid{grid-template-columns:1fr 1fr}
+  .train-grid,.my-pick-grid,.weights-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="hero-band">
+  <div class="hero-inner">
+    <div class="hero-h">FIFA World Cup 2026 - ML Tournament Predictor</div>
+    <p class="hero-sub">Logistic regression trained on 128 real matches from the 2018 and 2022 World Cups. Pick your bracket - every matchup shows the ML win probability. Your champion gets a confidence score.</p>
+    <div class="hero-pills">
+      <span class="pill">Logistic Regression</span>
+      <span class="pill">128 real WC matches</span>
+      <span class="pill">Data: 2018 & 2022 World Cup</span>
+      <span class="pill">Monte Carlo N=10,000</span>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-logo">FIFA 2026 ML Predictor</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-train" onclick="showPage('train',this)">Train Model</button>
+    <button class="nav-tab locked" id="tab-groups" onclick="gotoGroups()">Pick Groups</button>
+    <button class="nav-tab locked" id="tab-bracket" onclick="gotoBracket()">Bracket</button>
+    <button class="nav-tab locked" id="tab-mypick" onclick="showPage('mypick',document.getElementById('tab-mypick'))">My Prediction</button>
+  </div>
+  <div class="nav-status"><span class="status-dot" id="status-dot"></span><span id="status-txt">Train model to begin</span></div>
+</nav>
+
+<main>
+
+<!-- TRAIN -->
+<div id="page-train" class="page active">
+  <div class="sec-label">What the ML model learns from real data</div>
+  <div class="train-grid">
+    <div class="info-card">
+      <h3>Real training data</h3>
+      <p>128 matches from 2018 (Russia) and 2022 (Qatar) World Cups. Every result feeds an Elo engine that tracks team strength dynamically the model learns from how those Elo gaps predicted real outcomes.</p>
+    </div>
+    <div class="info-card">
+      <h3>Gradient descent · live</h3>
+      <p>200 epochs of mini-batch gradient descent run right here in your browser. The loss curve you see is the model actually converging weights w₁, w₂, w₃ are learned, not set by hand.</p>
+    </div>
+  </div>
+  <div class="formula-box">
+    <div class="fl">Logistic regression win probability formula</div>
+    P(A beats B) = σ( w₁·ΔElo + w₂·knockout_stage + w₃·bias )<br>
+    σ(x) = 1/(1+e<sup>−x</sup>) &nbsp;|&nbsp; Loss = −∑ y·log(p) + (1−y)·log(1−p) &nbsp;|&nbsp; Optimiser: mini-batch GD, lr=0.05
+  </div>
+  <button class="big-btn" id="train-btn" onclick="trainModel()">Train on 2018 & 2022 World Cup Data</button>
+
+  <div class="chart-card" id="chart-card">
+    <div class="chart-hdr"><span>Training loss curve</span><b id="epoch-lbl">Epoch 0/200</b></div>
+    <div class="chart-wrap"><canvas id="loss-canvas"></canvas></div>
+    <div class="tv-stats">
+      <div class="tv-stat"><div class="v" id="tv-loss"> </div><div class="l">Loss</div></div>
+      <div class="tv-stat"><div class="v" id="tv-acc"> </div><div class="l">Accuracy</div></div>
+      <div class="tv-stat"><div class="v" id="tv-ep">0</div><div class="l">Epoch</div></div>
+      <div class="tv-stat"><div class="v">0.05</div><div class="l">Learn rate</div></div>
+    </div>
+  </div>
+
+  <div id="weights-panel" style="display:none">
+    <div class="sec-label">Learned weights</div>
+    <div class="weights-row" id="weights-row"></div>
+    <p style="font-size:12px;color:var(--mu2);font-family:Arial,sans-serif;line-height:1.7;margin-bottom:20px">
+      w₁ (ΔElo)   how much the strength gap between teams drives the prediction.<br>
+      w₂ (knockout)   whether teams grind harder in elimination games vs group stage.<br>
+      Positive values = those features increase home win probability.
+    </p>
+    <button class="go-btn" onclick="gotoGroups()">Pick Groups</button>
+  </div>
+</div>
+
+<!-- GROUPS -->
+<div id="page-groups" class="page">
+  <div class="groups-intro">
+    Pick the <b style="color:var(--acc)">group winner</b> and <b style="color:var(--acc2)">runner-up</b> for each group. Click once = winner (), click again = runner-up (), click again = deselect. The ML model's Elo score for each team is shown use it!
+  </div>
+  <div class="groups-grid" id="groups-grid"></div>
+  <button class="next-phase-btn" id="next-phase-btn" onclick="gotoBracket()">Build My Bracket</button>
+</div>
+
+<!-- BRACKET -->
+<div id="page-bracket" class="page">
+  <div id="bracket-area"></div>
+</div>
+
+<!--   MY PICK -->
+<div id="page-mypick" class="page">
+  <div id="mypick-area"><div class="placeholder-bracket">Complete the bracket first</div></div>
+</div>
+
+</main>
+
+<script>
+// --------------------------------------------------------------
+// DATA
+// --------------------------------------------------------------
+const RAW = [["Russia","Saudi Arabia",1,0],["Egypt","Uruguay",-1,0],["Morocco","Iran",-1,0],["Portugal","Spain",0,0],["France","Australia",1,0],["Argentina","Iceland",0,0],["Peru","Denmark",-1,0],["Croatia","Nigeria",1,0],["Costa Rica","Serbia",-1,0],["Germany","Mexico",-1,0],["Brazil","Switzerland",0,0],["Sweden","South Korea",1,0],["Belgium","Panama",1,0],["Tunisia","England",-1,0],["Colombia","Japan",-1,0],["Poland","Senegal",-1,0],["Russia","Egypt",1,0],["Portugal","Morocco",1,0],["Uruguay","Saudi Arabia",1,0],["Iran","Spain",-1,0],["Denmark","Australia",0,0],["France","Peru",1,0],["Argentina","Croatia",-1,0],["Brazil","Costa Rica",1,0],["Nigeria","Iceland",1,0],["Serbia","Switzerland",-1,0],["Belgium","Tunisia",1,0],["South Korea","Mexico",-1,0],["Germany","Sweden",1,0],["England","Panama",1,0],["Japan","Senegal",0,0],["Poland","Colombia",-1,0],["Saudi Arabia","Egypt",1,0],["Uruguay","Russia",1,0],["Spain","Morocco",0,0],["Iran","Portugal",0,0],["Australia","Peru",-1,0],["Denmark","France",0,0],["Iceland","Croatia",-1,0],["Nigeria","Argentina",-1,0],["South Korea","Germany",1,0],["Mexico","Sweden",-1,0],["Serbia","Brazil",-1,0],["Switzerland","Costa Rica",0,0],["Japan","Poland",-1,0],["Senegal","Colombia",-1,0],["England","Belgium",-1,0],["Panama","Tunisia",-1,0],["France","Argentina",1,1],["Uruguay","Portugal",1,1],["Spain","Russia",-1,1],["Croatia","Denmark",1,1],["Brazil","Mexico",1,1],["Belgium","Japan",1,1],["Sweden","Switzerland",1,1],["Colombia","England",-1,1],["Uruguay","France",-1,1],["Brazil","Belgium",-1,1],["Sweden","England",-1,1],["Russia","Croatia",-1,1],["France","Belgium",1,1],["Croatia","England",1,1],["Belgium","England",1,1],["France","Croatia",1,1],["Qatar","Ecuador",-1,0],["England","Iran",1,0],["Senegal","Netherlands",-1,0],["USA","Wales",0,0],["Argentina","Saudi Arabia",-1,0],["Denmark","Tunisia",0,0],["Mexico","Poland",0,0],["France","Australia",1,0],["Morocco","Croatia",0,0],["Germany","Japan",-1,0],["Spain","Costa Rica",1,0],["Belgium","Canada",1,0],["Switzerland","Cameroon",1,0],["Uruguay","South Korea",0,0],["Portugal","Ghana",1,0],["Brazil","Serbia",1,0],["Wales","Iran",-1,0],["Qatar","Senegal",-1,0],["Netherlands","Ecuador",0,0],["England","USA",0,0],["Tunisia","Australia",-1,0],["Poland","Saudi Arabia",1,0],["France","Denmark",1,0],["Argentina","Mexico",1,0],["Japan","Costa Rica",-1,0],["Belgium","Morocco",-1,0],["Croatia","Canada",1,0],["Spain","Germany",0,0],["Cameroon","Serbia",0,0],["South Korea","Ghana",-1,0],["Brazil","Switzerland",1,0],["Portugal","Uruguay",1,0],["Ecuador","Senegal",-1,0],["Netherlands","Qatar",1,0],["Iran","USA",-1,0],["Wales","England",-1,0],["Australia","Denmark",1,0],["Tunisia","France",1,0],["Poland","Argentina",-1,0],["Saudi Arabia","Mexico",-1,0],["Canada","Morocco",-1,0],["Croatia","Belgium",0,0],["Costa Rica","Germany",-1,0],["Japan","Spain",1,0],["Ghana","Uruguay",-1,0],["South Korea","Portugal",1,0],["Cameroon","Brazil",1,0],["Serbia","Switzerland",-1,0],["Netherlands","USA",1,1],["Argentina","Australia",1,1],["France","Poland",1,1],["England","Senegal",1,1],["Japan","Croatia",-1,1],["Brazil","South Korea",1,1],["Morocco","Spain",1,1],["Portugal","Switzerland",1,1],["Croatia","Brazil",1,1],["Netherlands","Argentina",-1,1],["Morocco","Portugal",1,1],["England","France",-1,1],["Argentina","Croatia",1,1],["France","Morocco",1,1],["Croatia","Morocco",1,1],["Argentina","France",1,1]];
+
+const TEAMS_2026 = [
+  {f:'MEX',n:'Mexico',g:'A'},{f:'KOR',n:'South Korea',g:'A'},{f:'RSA',n:'South Africa',g:'A'},{f:'CZE',n:'Czechia',g:'A'},
+  {f:'CAN',n:'Canada',g:'B'},{f:'SUI',n:'Switzerland',g:'B'},{f:'QAT',n:'Qatar',g:'B'},{f:'BIH',n:'Bosnia',g:'B'},
+  {f:'BRA',n:'Brazil',g:'C'},{f:'MAR',n:'Morocco',g:'C'},{f:'SCO',n:'Scotland',g:'C'},{f:'CRC',n:'Costa Rica',g:'C'},
+  {f:'USA',n:'USA',g:'D'},{f:'AUS',n:'Australia',g:'D'},{f:'TUR',n:'Türkiye',g:'D'},{f:'PAR',n:'Paraguay',g:'D'},
+  {f:'GER',n:'Germany',g:'E'},{f:'ECU',n:'Ecuador',g:'E'},{f:'CIV',n:'Ivory Coast',g:'E'},{f:'SVN',n:'Slovenia',g:'E'},
+  {f:'NED',n:'Netherlands',g:'F'},{f:'JPN',n:'Japan',g:'F'},{f:'SWE',n:'Sweden',g:'F'},{f:'TUN',n:'Tunisia',g:'F'},
+  {f:'BEL',n:'Belgium',g:'G'},{f:'IRN',n:'Iran',g:'G'},{f:'EGY',n:'Egypt',g:'G'},{f:'NZL',n:'New Zealand',g:'G'},
+  {f:'ESP',n:'Spain',g:'H'},{f:'URU',n:'Uruguay',g:'H'},{f:'KSA',n:'Saudi Arabia',g:'H'},{f:'UZB',n:'Uzbekistan',g:'H'},
+  {f:'FRA',n:'France',g:'I'},{f:'SEN',n:'Senegal',g:'I'},{f:'NOR',n:'Norway',g:'I'},{f:'IRQ',n:'Iraq',g:'I'},
+  {f:'ARG',n:'Argentina',g:'J'},{f:'AUT',n:'Austria',g:'J'},{f:'ALG',n:'Algeria',g:'J'},{f:'JOR',n:'Jordan',g:'J'},
+  {f:'POR',n:'Portugal',g:'K'},{f:'COL',n:'Colombia',g:'K'},{f:'COD',n:'DR Congo',g:'K'},{f:'CPV',n:'Cape Verde',g:'K'},
+  {f:'ENG',n:'England',g:'L'},{f:'CRO',n:'Croatia',g:'L'},{f:'PAN',n:'Panama',g:'L'},{f:'GHA',n:'Ghana',g:'L'}
+];
+
+// -------------------------------------------------------------------------------
+
+// Country code lookup
+const CODE_MAP = {
+  'France':'FRA','Spain':'ESP','Argentina':'ARG','England':'ENG','Portugal':'POR',
+  'Brazil':'BRA','Netherlands':'NED','Morocco':'MAR','Belgium':'BEL','Germany':'GER',
+  'Croatia':'CRO','Colombia':'COL','Senegal':'SEN','Mexico':'MEX','USA':'USA',
+  'Uruguay':'URU','Japan':'JPN','Switzerland':'SUI','Iran':'IRN','Austria':'AUT',
+  'Ecuador':'ECU','South Korea':'KOR','Australia':'AUS','Egypt':'EGY','Canada':'CAN',
+  'Ivory Coast':'CIV','Qatar':'QAT','Algeria':'ALG','Sweden':'SWE','Tunisia':'TUN',
+  'Czechia':'CZE','Turkiye':'TUR','Türkiye':'TUR','Norway':'NOR','Scotland':'SCO',
+  'DR Congo':'COD','Bosnia':'BIH','Panama':'PAN','Saudi Arabia':'KSA',
+  'South Africa':'RSA','Iraq':'IRQ','Paraguay':'PAR','Ghana':'GHA',
+  'Uzbekistan':'UZB','Cape Verde':'CPV','Jordan':'JOR','Slovenia':'SVN',
+  'New Zealand':'NZL','Costa Rica':'CRC','England':'ENG',
+  'Iceland':'ISL','Denmark':'DEN','Poland':'POL','Nigeria':'NGA','Peru':'PER',
+  'Serbia':'SRB','Wales':'WAL','Russia':'RUS','Cameroon':'CMR','Denmark':'DEN',
+  'Sweden':'SWE','Nigeria':'NGA','Iceland':'ISL','Costa Rica':'CRC','Switzerland':'SUI',
+  'Colombia':'COL','Senegal':'SEN','Tunisia':'TUN','Saudi Arabia':'KSA',
+  'DR Congo':'COD','Bosnia':'BIH','Austria':'AUT','Algeria':'ALG','Jordan':'JOR',
+  'Slovenia':'SVN','New Zealand':'NZL','Cape Verde':'CPV','Iraq':'IRQ',
+  'Uzbekistan':'UZB','Paraguay':'PAR'
+}
+function getCode(name){ return CODE_MAP[name] || (name||'').substring(0,3).toUpperCase(); }
+
+// ELO ENGINE
+// --------------------------------------------------------------
+const BASE_ELO=1500, K_ELO=32;
+let elos={}, matchHist={};
+
+const SEED={France:1680,Argentina:1670,Croatia:1640,Brazil:1610,Belgium:1600,England:1590,Netherlands:1570,Portugal:1560,Uruguay:1540,Spain:1540,Morocco:1500,Germany:1490,Switzerland:1460,Japan:1450,Senegal:1440,Sweden:1430,Colombia:1420,Mexico:1410,'South Korea':1400,Australia:1390,USA:1380,Iran:1370,Tunisia:1360,'Saudi Arabia':1340,Ecuador:1350,Egypt:1330,Ghana:1330,'Costa Rica':1320,Poland:1310,Denmark:1300,Serbia:1290,Qatar:1280,Canada:1270,Cameroon:1280,Panama:1260,Iceland:1250,Wales:1250,Nigeria:1260,Peru:1260,Russia:1300};
+
+function resetElos(){
+  elos={};matchHist={};
+  TEAMS_2026.forEach(t=>elos[t.n]=BASE_ELO);
+  Object.entries(SEED).forEach(([k,v])=>{if(elos[k]!==undefined)elos[k]=v;});
+}
+
+function replayHistory(){
+  console.log("replaying match history...");
+  resetElos();
+  RAW.forEach(([h,a,r,ko])=>{
+    const key=[h,a].sort().join('|');
+    if(!matchHist[key])matchHist[key]=[];
+    matchHist[key].push({h,a,r});
+    const eH=elos[h]||BASE_ELO, eA=elos[a]||BASE_ELO;
+    const exp=1/(1+Math.pow(10,(eA-eH)/400));
+    const sc=r===1?1:r===0?0.5:0;
+    elos[h]=eH+K_ELO*(sc-exp);
+    elos[a]=eA+K_ELO*((1-sc)-(1-exp));
+  });
+}
+
+// --------------------------------------------------------------
+// ML MODEL
+// --------------------------------------------------------------
+let model=null, trainedElos=null, modelReady=false;
+
+// function sigmoid(x){ return x > 0 ? 1 : 0; } // tried this first, didnt work
+// did a lil research : what sigmoid actually does
+function sigmoid(x){return 1/(1+Math.exp(-Math.max(-20,Math.min(20,x))))}
+function features(eH,eA,ko){return [(eH-eA)/400, ko, 1]}
+function predict(f,w){let z=0;f.forEach((fi,i)=>z+=fi*w[i]);return sigmoid(z)}
+
+function mlProb(nA,nB,ko=1){
+  const eA=(trainedElos||elos)[nA]||BASE_ELO;
+  const eB=(trainedElos||elos)[nB]||BASE_ELO;
+  if(!model)return 1/(1+Math.pow(10,(eB-eA)/400));
+  return predict(features(eA,eB,ko),model.w);
+}
+
+
+
+function drawLossCurve(pts){
+  const canvas=document.getElementById('loss-canvas');
+  const W=800, H=150;
+  canvas.width=W; canvas.height=H;
+  canvas.style.width='100%'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  if(!pts||pts.length<2) return;
+  const pad={t:10,r:10,b:30,l:44};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const minL=Math.min(...pts.map(p=>p.l));
+  const maxL=Math.max(...pts.map(p=>p.l));
+  const rng=maxL-minL||0.01;
+  const xS=e=>pad.l+(e/200)*iW;
+  const yS=v=>pad.t+iH-(v-minL)/rng*iH;
+  // grid lines y
+  ctx.strokeStyle='#222'; ctx.lineWidth=0.5;
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=pad.t+iH*f;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+iW,y);ctx.stroke();
+    ctx.fillStyle='#555';ctx.font='9px Arial';ctx.textAlign='right';
+    ctx.fillText((maxL-f*rng).toFixed(3),pad.l-4,y+3);
+  });
+  // x axis ticks
+  ctx.fillStyle='#555';ctx.font='9px Arial';ctx.textAlign='center';
+  [0,50,100,150,200].forEach(e=>{
+    const x=xS(e);
+    ctx.beginPath();ctx.moveTo(x,pad.t+iH);ctx.lineTo(x,pad.t+iH+4);
+    ctx.strokeStyle='#444';ctx.lineWidth=0.5;ctx.stroke();
+    ctx.fillText(e,x,H-pad.b+12);
+  });
+  ctx.fillStyle='#666';ctx.font='9px Arial';
+  ctx.textAlign='center';ctx.fillText('Epoch',W/2,H-2);
+  // draw loss curve up to current pts
+  ctx.strokeStyle='#aaff00';ctx.lineWidth=1.5;ctx.lineJoin='round';
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(xS(p.e),yS(p.l)):ctx.lineTo(xS(p.e),yS(p.l)));
+  ctx.stroke();
+}
+
+function trainModel(){
+  const btn=document.getElementById('train-btn');
+  btn.disabled=true;btn.textContent='Training...';
+  document.getElementById('chart-card').style.display='block';
+  document.getElementById('weights-panel').style.display='none';
+
+  replayHistory();
+  trainedElos={...elos};
+
+  const data=RAW.map(([h,a,r,ko])=>{
+    const eH=elos[h]||BASE_ELO,eA=elos[a]||BASE_ELO;
+    return [features(eH,eA,ko), r===1?1:0];
+  });
+
+  let w=[0.1,0.05,0.0];
+  const lr=0.05,EPOCHS=200,BS=16;
+  let epoch=0;
+
+    // plain canvas - no library needed
+;
+
+  const lossValues=[];
+  function step(){
+    // 20 epochs per tick = 10 ticks total, I think fast but visible
+    for(let t=0;t<20&&epoch<EPOCHS;t++){
+      for(let b=0;b<data.length;b+=BS){
+        const batch=data.slice(b,b+BS),g=[0,0,0];
+        batch.forEach(([f,y])=>{const p=predict(f,w),e=p-y;f.forEach((fi,i)=>g[i]+=e*fi);});
+        w=w.map((wi,i)=>wi-lr*g[i]/batch.length);
+      }
+      epoch++;
+      let l=0;
+      data.forEach(([f,y])=>{const p=predict(f,w);l+=-(y*Math.log(Math.max(1e-7,p))+(1-y)*Math.log(Math.max(1e-7,1-p)));});
+      lossValues.push({e:epoch,l:+(l/data.length).toFixed(4)});
+    }
+    // updated display
+    const lastL=lossValues[lossValues.length-1].l;
+    document.getElementById('epoch-lbl').textContent='Epoch '+epoch+'/200';
+    document.getElementById('tv-loss').textContent=lastL.toFixed(3);
+    document.getElementById('tv-ep').textContent=epoch;
+    // drawing the curve so far - showing the live update
+    drawLossCurve(lossValues);
+    if(epoch<EPOCHS){
+      setTimeout(step,30);  // 30ms between ticks = I think this is smooth but fast
+    } else {
+      // done - computing the final accuracy
+      let ok=0;
+      data.forEach(([f,y])=>{const p=predict(f,w);if((p>.5&&y===1)||(p<=.5&&y===0))ok++;});
+      document.getElementById('tv-acc').textContent=Math.round(ok/data.length*100)+'%';
+      document.getElementById('epoch-lbl').textContent='Epoch 200/200';
+      console.log("training done!!");
+console.log("weights:", w);
+model={w};modelReady=true;
+      trainedElos={...elos};
+      btn.textContent='Trained - Retrain';btn.disabled=false;
+      renderWeights(w);
+      document.getElementById('status-dot').className='status-dot on';
+      document.getElementById('status-txt').textContent='Model ready - pick your bracket!';
+      ['tab-groups','tab-bracket','tab-mypick'].forEach(id=>document.getElementById(id).classList.remove('locked'));
+    }
+  }
+  setTimeout(step,20);
+}
+
+function renderWeights(w){
+  const panel=document.getElementById('weights-panel');panel.style.display='block';
+  const names=['w₁ · ΔElo','w₂ · Knockout','w₃ · Bias'];
+  const mx=Math.max(...w.map(Math.abs));
+  document.getElementById('weights-row').innerHTML=names.map((n,i)=>`
+    <div class="w-card">
+      <div class="wn">${n}</div><div class="wv">${w[i].toFixed(3)}</div>
+      <div class="wbar"><div class="wfill" style="width:${Math.abs(w[i])/mx*100}%"></div></div>
+    </div>`).join('');
+}
+
+// --------------------------------------------------------------
+// GROUPS STATE
+// --------------------------------------------------------------
+// groupPicks[g] = {winner: teamName|null, runner: teamName|null}
+let groupPicks={};
+'ABCDEFGHIJKL'.split('').forEach(g=>groupPicks[g]={winner:null,runner:null});
+
+function pickTeam(g, name){
+  const p=groupPicks[g];
+  if(p.winner===name){p.winner=null;}           // deselect winner
+  else if(p.runner===name){p.runner=null;}       // deselect runner
+  else if(!p.winner){p.winner=name;}            // set winner
+  else if(!p.runner){p.runner=name;}            // set runner
+  else{p.winner=name;p.runner=null;}            // replace winner
+  renderGroups();
+  checkGroupsDone();
+}
+
+function checkGroupsDone(){
+  const done='ABCDEFGHIJKL'.split('').every(g=>groupPicks[g].winner&&groupPicks[g].runner);
+  const btn=document.getElementById('next-phase-btn');
+  btn.classList.toggle('show',done);
+}
+
+function renderGroups(){
+  const grid=document.getElementById('groups-grid');
+  grid.innerHTML='';
+  const byGroup={};
+  TEAMS_2026.forEach(t=>{if(!byGroup[t.g])byGroup[t.g]=[];byGroup[t.g].push(t);});
+
+  'ABCDEFGHIJKL'.split('').forEach(g=>{
+    const teams=byGroup[g];
+    const p=groupPicks[g];
+    const done=p.winner&&p.runner;
+    const card=document.createElement('div');
+    card.className='g-card'+(done?' complete':'');
+    const bestElo=teams.reduce((best,t)=>((trainedElos||elos)[t.n]||BASE_ELO)>((trainedElos||elos)[best.n]||BASE_ELO)?t:best,teams[0]);
+    card.innerHTML=`<div class="g-header"><span class="g-label">Group ${g}</span><span class="g-done">DONE</span></div>`;
+
+    teams.forEach(t=>{
+      const elo=Math.round((trainedElos||elos)[t.n]||BASE_ELO);
+      const isW=p.winner===t.n,isR=p.runner===t.n;
+      const row=document.createElement('div');
+      row.className='team-row'+(isW?' picked':isR?' runner':'');
+      row.innerHTML=`<div class="team-left"><span class="t-code">${getCode(t.n)}</span><span class="t-name">${t.n}</span></div><span class="pick-dot"></span>`;
+      row.onclick=()=>pickTeam(g,t.n);
+      card.appendChild(row);
+    });
+
+    const legend=document.createElement('div');
+    legend.className='g-legend';
+    legend.innerHTML=`<span class="leg"><span class="leg-dot" style="background:var(--acc)"></span>Winner</span><span class="leg"><span class="leg-dot" style="background:var(--acc2)"></span>Runner-up</span>`;
+    card.appendChild(legend);
+    grid.appendChild(card);
+  });
+}
+
+// --------------------------------------------------------------
+// BRACKET STATE
+// --------------------------------------------------------------
+// rounds: R32 (32 matchups), R16 (16), QF (8), SF (4), F (2), W (1)
+// bracket[roundIdx][matchIdx] = {teamA, teamB, winner}
+let bracket=[];
+let bracketBuilt=false;
+
+function buildBracket(){
+  // Collecting 32 advancing teams: 24 group qualifiers + 8 best thirds
+  // For simplicity: I have kept winner + runner per group = 24, and at last it is picking the remaining 8 from the groups
+  const advancing=[];
+  const thirdCandidates=[];
+  const byGroup={};
+  TEAMS_2026.forEach(t=>{if(!byGroup[t.g])byGroup[t.g]=[];byGroup[t.g].push(t.n);});
+
+  'ABCDEFGHIJKL'.split('').forEach(g=>{
+    const p=groupPicks[g];
+    if(p.winner)advancing.push(p.winner);
+    if(p.runner)advancing.push(p.runner);
+    // best 3rd = highest elo among non-picked ones
+    const teams=byGroup[g];
+    const others=teams.filter(n=>n!==p.winner&&n!==p.runner);
+    const best=others.sort((a,b)=>((trainedElos||elos)[b]||BASE_ELO)-((trainedElos||elos)[a]||BASE_ELO))[0];
+    if(best)thirdCandidates.push(best);
+  });
+  thirdCandidates.sort((a,b)=>((trainedElos||elos)[b]||BASE_ELO)-((trainedElos||elos)[a]||BASE_ELO));
+  const thirds=thirdCandidates.slice(0,8);
+  const r32teams=[...advancing,...thirds]; // 32 teams
+
+  // Building the (round off) R32 matchups (group winners vs thirds, runners vs runners)
+  // Simple seeded pairing: 1v32, 2v31, etc by elo
+  r32teams.sort((a,b)=>((trainedElos||elos)[b]||BASE_ELO)-((trainedElos||elos)[a]||BASE_ELO));
+  const seeded=[...r32teams];
+  const matchups32=[];
+  for(let i=0;i<16;i++) matchups32.push({teamA:seeded[i],teamB:seeded[31-i],winner:null});
+
+  bracket=[
+    matchups32,                                     // R32   16 matchups
+    Array.from({length:8},()=>({teamA:null,teamB:null,winner:null})),   // R16
+    Array.from({length:4},()=>({teamA:null,teamB:null,winner:null})),   // QF
+    Array.from({length:2},()=>({teamA:null,teamB:null,winner:null})),   // SF
+    [{teamA:null,teamB:null,winner:null}]            // Final
+  ];
+  bracketBuilt=true;
+}
+
+function pickWinner(roundIdx, matchIdx, name){
+  bracket[roundIdx][matchIdx].winner=name;
+  // Propagating it to the next round
+  const nextRound=roundIdx+1;
+  if(nextRound<bracket.length){
+    const nextMatch=Math.floor(matchIdx/2);
+    const slot=matchIdx%2===0?'teamA':'teamB';
+    bracket[nextRound][nextMatch][slot]=name;
+    // Clearing the downstream picks when I am changing a pick
+    clearDownstream(nextRound,nextMatch);
+  }
+  renderBracket();
+  renderMyPick();
+}
+
+function clearDownstream(roundIdx,matchIdx){
+  if(roundIdx>=bracket.length)return;
+  const m=bracket[roundIdx][matchIdx];
+  if(m.winner){
+    const nr=roundIdx+1;
+    if(nr<bracket.length){
+      const nm=Math.floor(matchIdx/2),sl=matchIdx%2===0?'teamA':'teamB';
+      if(bracket[nr][nm][sl]===m.winner){bracket[nr][nm][sl]=null;}
+      clearDownstream(nr,nm);
+    }
+    m.winner=null;
+  }
+}
+
+const ROUND_NAMES=['Round of 32','Round of 16','Quarter-finals','Semi-finals','Final'];
+
+function getTeamObj(name){return TEAMS_2026.find(t=>t.n===name)||{f:'???',n:name||'TBD'}}
+
+function renderBracket(){
+  const area=document.getElementById('bracket-area');
+  const champion=bracket[4]&&bracket[4][0]&&bracket[4][0].winner;
+
+  let html=`<div class="bracket-wrap"><div class="bracket">`;
+  bracket.forEach((round,ri)=>{
+    html+=`<div class="round-col"><div class="round-title">${ROUND_NAMES[ri]}</div>`;
+    round.forEach((m,mi)=>{
+      const tA=getTeamObj(m.teamA),tB=getTeamObj(m.teamB);
+      const pA=m.teamA&&m.teamB?Math.round(mlProb(m.teamA,m.teamB,1)*100):null;
+      const pB=pA!==null?100-pA:null;
+      const isDone=!!m.winner;
+      const isFinal=ri===4;
+      html+=`<div class="matchup${isDone?' done':''}${isFinal?' final-matchup':''}">`;
+
+      // Team A
+      const clA=m.winner?m.winner===m.teamA?'winner':'loser':m.teamA?'':'tbd';
+      html+=`<div class="mu-team ${clA}"` + (m.teamA&&m.teamB ? ` data-ri="${ri}" data-mi="${mi}" data-side="A"` : '') + `>`;
+      html+=`<span class="mu-code">${getCode(tA.n)}</span><span class="mu-name">${tA.n}</span>`;
+      if(pA!==null) html+=`<span class="mu-prob">${pA}%</span>`;
+      if(m.winner===m.teamA) html+=``;
+      html+=`</div>`;
+
+
+      html+=`<div class="mu-vs">vs</div>`;
+
+
+      const clB=m.winner?m.winner===m.teamB?'winner':'loser':m.teamB?'':'tbd';
+      html+=`<div class="mu-team ${clB}"` + (m.teamA&&m.teamB ? ` data-ri="${ri}" data-mi="${mi}" data-side="B"` : '') + `>`;
+      html+=`<span class="mu-code">${getCode(tB.n)}</span><span class="mu-name">${tB.n}</span>`;
+      if(pB!==null) html+=`<span class="mu-prob">${pB}%</span>`;
+      if(m.winner===m.teamB) html+=``;
+      html+=`</div>`;
+
+
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  });
+  html+=`</div></div>`;
+
+  if(champion){
+    const ct=getTeamObj(champion);
+    const confScore=Math.round(bracket.slice(0,4).reduce((acc,round)=>{
+      const m=round.find(m=>m.winner===champion||(m.teamA===champion||m.teamB===champion));
+      if(!m||!m.winner)return acc;
+      const opp=m.teamA===champion?m.teamB:m.teamA;
+      return acc+(opp?mlProb(champion,opp,1):0.5);
+    },0)/4*100);
+    html+=`<div class="champ-display">
+      <div class="champ-name-big">${getCode(champion)} - ${champion}</div>
+      <div class="champ-conf">ML Confidence Score: <b>${confScore}%</b> avg win probability across your bracket path</div>
+    </div>`;
+  }
+
+  area.innerHTML=html;
+  // well, this is the event delegation which works for any team name, no escaping issues
+  area.querySelectorAll('.mu-team[data-ri]').forEach(el=>{
+    el.style.cursor='pointer';
+    el.addEventListener('click',()=>{
+      const ri=parseInt(el.dataset.ri),mi=parseInt(el.dataset.mi),side=el.dataset.side;
+      const m=bracket[ri][mi];
+      const name=side==='A'?m.teamA:m.teamB;
+      if(name) pickWinner(ri,mi,name);
+    });
+  });
+}
+
+// --------------------------------------------------------------
+// MY PICK PAGE
+// --------------------------------------------------------------
+let simResults=null;
+
+function buildInsight(champion, path, avgConf){
+  const ct = getTeamObj(champion);
+  const elo = Math.round((trainedElos||elos)[champion]||BASE_ELO);
+  const w = model ? model.w : [0.1,0.05,0];
+
+  // Feature importance: how much each weight contributed to the avg prediction
+  const wElo = Math.abs(w[0]), wKo = Math.abs(w[1]), wBias = Math.abs(w[2]);
+  const total = wElo + wKo + wBias || 1;
+  const pctElo = Math.round(wElo/total*100);
+  const pctKo  = Math.round(wKo/total*100);
+
+  // Training matches involving this team
+  const teamMatches = RAW.filter(([h,a])=> h===champion||a===champion);
+  const wins   = teamMatches.filter(([h,a,r])=>(h===champion&&r===1)||(a===champion&&r===-1)).length;
+  const draws  = teamMatches.filter(([,,r])=>r===0).length;
+  const losses = teamMatches.filter(([h,a,r])=>(h===champion&&r===-1)||(a===champion&&r===1)).length;
+  const wr = teamMatches.length ? Math.round(wins/teamMatches.length*100) : 0;
+
+  // Upsets in their bracket path (they were the underdogs)
+  const upsets = path.filter(p => p.prob < 50);
+  const dominant = path.filter(p => p.prob >= 65);
+
+  // Most influential training match (biggest Elo differential is that whether they overcame or dominated)
+  const relevantHist = RAW
+    .filter(([h,a])=>h===champion||a===champion)
+    .map(([h,a,r,ko])=>{
+      const isHome=h===champion;
+      const opp=isHome?a:h;
+      const oppElo=(trainedElos||elos)[opp]||BASE_ELO;
+      const champElo=(trainedElos||elos)[champion]||BASE_ELO;
+      const diff=isHome?champElo-oppElo:oppElo-champElo;
+      const won=(isHome&&r===1)||(!isHome&&r===-1);
+      const drew=r===0;
+      return {opp,diff,won,drew,ko,h,a,r};
+    })
+    .sort((a,b)=>b.diff-a.diff);
+
+  // Bracket path upsets (where they won as underdog)
+  const bracketUpsets = path.filter(p=>p.prob<50);
+  const bracketDominant = path.filter(p=>p.prob>=70);
+
+  let html = `<div class="insight-card">
+    <h3>Why the model picked ${getCode(champion)} ${champion}</h3>`;
+
+  // SECTION 1: the plain-English insights
+  const topReason = pctElo >= 50
+    ? `The model's primary driver was <b>Elo strength gap</b> (${pctElo}% of weight). ${champion}'s Elo of <span class="num">${elo}</span> puts them among the strongest teams in the 2026 field.`
+    : `The model weighted <b>knockout-stage performance</b> heavily (${pctKo}% of weight)   and ${champion} have a strong track record of winning when it matters.`;
+
+  const histReason = teamMatches.length > 0
+    ? `In the 2018 & 2022 training data, <b>${champion}</b> appeared in <span class="num">${teamMatches.length}</span> matches   winning <span class="num">${wins}</span>, drawing <span class="num2">${draws}</span>, losing <span class="num">${losses}</span> (<span class="num">${wr}%</span> win rate). That record shaped their starting Elo.`
+    : `${champion} didn't appear in 2018 or 2022 data   their Elo is seeded from FIFA ranking. The model is extrapolating from strength, not history.`;
+
+  const pathReason = bracketUpsets.length > 0
+    ? `Your bracket included <b>${bracketUpsets.length} underdog pick${bracketUpsets.length>1?'s':''}</b> for ${champion}   matches where the model gave them under 50%. That's a bold call, and it compounds the overall confidence down.`
+    : bracketDominant.length >= 3
+    ? `Your bracket had ${champion} as favourite in <b>${bracketDominant.length} of ${path.length} matches</b>   the model agreed with your picks, which is why the confidence score is high.`
+    : `Your bracket path was mixed   some tight matchups, some comfortable ones. The model's confidence reflects that uncertainty.`;
+
+  html += `<div class="insight-section">
+    <div class="insight-label">Model verdict</div>
+    <div class="insight-why">${topReason}<br><br>${histReason}<br><br>${pathReason}</div>
+  </div>`;
+
+  // SECTION 2: feature weights
+  html += `<div class="insight-section">
+    <div class="insight-label">Feature importance</div>
+    <div style="padding:4px 0">
+      <div class="feat-row">
+        <span class="feat-name">Elo strength gap</span>
+        <div class="feat-bar-w"><div class="feat-bar" style="width:${pctElo}%"></div></div>
+        <span class="feat-val">w=${w[0].toFixed(3)}</span>
+        <span class="feat-desc">${pctElo}% of signal</span>
+      </div>
+      <div class="feat-row">
+        <span class="feat-name">Knockout pressure</span>
+        <div class="feat-bar-w"><div class="feat-bar" style="width:${pctKo}%" ></div></div>
+        <span class="feat-val">w=${w[1].toFixed(3)}</span>
+        <span class="feat-desc">${pctKo}% of signal</span>
+      </div>
+      <div class="feat-row">
+        <span class="feat-name">Bias term</span>
+        <div class="feat-bar-w"><div class="feat-bar" style="width:${Math.round(wBias/total*100)}%;background:#aaff00"></div></div>
+        <span class="feat-val">w=${w[2].toFixed(3)}</span>
+        <span class="feat-desc">baseline offset</span>
+      </div>
+    </div>
+  </div>`;
+
+  // SECTION 3: bracket path analysis
+  html += `<div class="insight-section">
+    <div class="insight-label">Your bracket path   match by match</div>
+    <div style="margin-bottom:8px">`;
+  path.forEach(p=>{
+    const isUpset = p.prob < 50;
+    const isTight = p.prob >= 50 && p.prob < 60;
+    const tag = isUpset
+      ? `<span class="upset-pill yes">upset pick ${p.prob}%</span>`
+      : isTight
+      ? `<span class="upset-pill" style="background:rgba(255,204,68,.08);color:var(--gold);border:1px solid rgba(255,204,68,.2)">tight ${p.prob}%</span>`
+      : `<span class="upset-pill no">favoured ${p.prob}%</span>`;
+    html+=`<div class="hist-match">
+      <span class="hm-year">${p.round}</span>
+      <span class="hm-teams">${getCode(champion)} <b>${champion}</b> vs ${getCode(p.opp)} ${p.opp}</span>
+      <span>${tag}</span>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // SECTION 4: training history
+  if(teamMatches.length > 0){
+    html += `<div class="insight-section">
+      <div class="insight-label">2018 & 2022 training matches that shaped their Elo</div>`;
+    const showMatches = relevantHist.slice(0,5);
+    showMatches.forEach(({opp,won,drew,h,a,r})=>{
+      const isHome=h===champion;
+      const yr = RAW.indexOf(RAW.find(m=>m[0]===h&&m[1]===a&&m[2]===r)) < 64 ? '2018':'2022';
+      const resClass = won?'hm-w':drew?'hm-d':'hm-l';
+      const resText = won?'WIN':drew?'DRAW':'LOSS';
+      const oppObj=getTeamObj(opp);
+      html+=`<div class="hist-match">
+        <span class="hm-year">${yr}</span>
+        <span class="hm-teams">${isHome?`<b>${champion}</b> vs ${getCode(opp)} ${opp}`:`${getCode(opp)} ${opp} vs <b>${champion}</b>`}</span>
+        <span class="hm-res ${resClass}">${resText}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+function renderMyPick(){
+  const area=document.getElementById('mypick-area');
+  const champion=bracket[4]&&bracket[4][0]&&bracket[4][0].winner;
+  if(!champion){area.innerHTML=`<div class="placeholder-bracket">Complete your bracket to see your prediction summary</div>`;return;}
+
+  const ct=getTeamObj(champion);
+
+  // Build path
+  const path=[];
+  bracket.forEach((round,ri)=>{
+    round.forEach(m=>{
+      if(m.winner===champion){
+        const opp=m.teamA===champion?m.teamB:m.teamA;
+        if(opp){
+          const p=Math.round(mlProb(champion,opp,1)*100);
+          path.push({round:ROUND_NAMES[ri],opp,oppFlag:getTeamObj(opp).f,prob:p});
+        }
+      }
+    });
+  });
+
+  const avgConf=path.length?Math.round(path.reduce((s,p)=>s+p.prob,0)/path.length):50;
+
+  let html=`<div class="my-pick-grid">
+    <div class="pick-summary-card">
+      <h3>Your predicted champion</h3>
+      <div style="text-align:center;padding:16px 0">
+        <div style="font-size:24px;font-weight:bold;color:#888;font-family:Arial,sans-serif">${getCode(champion)}</div>
+        <div style="font-family:Arial,sans-serif;font-size:36px;color:var(--acc);margin-top:4px">${champion}</div>
+      </div>
+      <div style="text-align:center">
+        <div class="big-pct">${avgConf}%</div>
+        <div class="confidence-label">ML confidence score<br><span style="font-size:11px;color:var(--mu)">avg win probability across your bracket picks</span></div>
+      </div>
+    </div>
+    <div class="pick-summary-card">
+      <h3>Your bracket path</h3>
+      <div class="my-path">
+        ${path.map(p=>`<div class="path-step">
+          <span class="ps-round">${p.round}</span>
+          <span>${p.oppFlag} <span class="ps-team">${p.opp}</span></span>
+          <span class="ps-prob">${p.prob}%</span>
+        </div>`).join('')}
+        <div class="path-step trophy">
+          <span class="ps-round">Champion</span>
+          <span><span class="ps-team" style="font-weight:bold">${getCode(champion)} ${champion}</span></span>
+          <span class="ps-prob"></span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  html+=`<div class="sim-compare">
+    <h3>How does your pick compare?   Monte Carlo simulation</h3>
+    <p style="font-size:12px;color:var(--mu2);font-family:Arial,sans-serif;line-height:1.7;margin-bottom:14px">Run 10,000 simulations to see what the ML model thinks the true championship probability is   then compare with your pick.</p>
+    <button class="run-mc-btn" id="run-mc-btn" onclick="runMonteCarlo()">Simulate 10,000 Tournaments</button>
+    <div class="prog" id="mc-prog"><div class="prog-fill" id="mc-fill"></div></div>
+    <div id="mc-results"></div>
+  </div>`;
+
+
+
+  html += buildInsight(champion, path, avgConf);
+  area.innerHTML=html;
+  if(simResults)renderMCResults(simResults,champion);
+}
+
+
+
+// --------------------------------------------------------------
+// MONTE CARLO SIMULATIONS
+// --------------------------------------------------------------
+// each run samples outcomes probabilistically based on ml win probabilities
+// more runs = more accurate championship probabilities
+// --------------------------------------------------------------
+function simOneTournament(){
+  // this took me forever to figure out; had to console.log every step to debug this
+  const groups={};
+  TEAMS_2026.forEach(t=>{if(!groups[t.g])groups[t.g]=[];groups[t.g].push(t.n);});
+  const pts={};TEAMS_2026.forEach(t=>pts[t.n]=0);
+  Object.values(groups).forEach(gt=>{
+    for(let i=0;i<gt.length;i++)for(let j=i+1;j<gt.length;j++){
+      const p=Math.max(.05,Math.min(.95,mlProb(gt[i],gt[j],0)));
+      const r=Math.random(),dz=.18;
+      if(r<p*(1-dz))pts[gt[i]]+=3;
+      else if(r<p*(1-dz)+dz){pts[gt[i]]++;pts[gt[j]]++;}
+      else pts[gt[j]]+=3;
+    }
+  });
+  const adv=[];const thirds=[];
+  Object.entries(groups).forEach(([g,gt])=>{
+    const s=[...gt].sort((a,b)=>pts[b]-pts[a]);
+    adv.push(s[0],s[1]);thirds.push({n:s[2],p:pts[s[2]]});
+  });
+  thirds.sort((a,b)=>b.p-a.p);thirds.slice(0,8).forEach(t=>adv.push(t.n));
+  let pool=[...adv];
+  while(pool.length>1){
+    const next=[];
+    for(let i=0;i<pool.length;i+=2){
+      if(i+1>=pool.length){next.push(pool[i]);continue;}
+      next.push(Math.random()<Math.max(.05,Math.min(.95,mlProb(pool[i],pool[i+1],1)))?pool[i]:pool[i+1]);
+    }
+    pool=next;
+  }
+  return pool[0];
+}
+
+function runMonteCarlo(){
+  const N=10000;
+  const btn=document.getElementById('run-mc-btn');
+  const prog=document.getElementById('mc-prog');
+  const fill=document.getElementById('mc-fill');
+  btn.disabled=true;btn.textContent='Simulating...';
+  prog.style.display='block';fill.style.width='0%';
+  const wins={};TEAMS_2026.forEach(t=>wins[t.n]=0);
+  let done=0;
+  function batch(){
+    const end=Math.min(done+500,N);
+    for(let i=done;i<end;i++){const w=simOneTournament();wins[w]=(wins[w]||0)+1;}
+    done=end;fill.style.width=(done/N*100)+'%';
+    if(done<N)setTimeout(batch,0);
+    else{
+      simResults=wins;
+      const champion=bracket[4][0].winner;
+      renderMCResults(wins,champion);
+      btn.disabled=false;btn.textContent='Re-Simulate';
+      prog.style.display='none';
+    }
+  }
+  setTimeout(batch,0);
+}
+
+function renderMCResults(wins,myPick){
+  const N=Object.values(wins).reduce((s,v)=>s+v,0);
+  const sorted=Object.entries(wins).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const max=sorted[0][1];
+  let html=`<div style="margin-top:4px">`;
+  sorted.forEach(([name,count])=>{
+    const t=getTeamObj(name);
+    const pct=(count/N*100).toFixed(1);
+    const bw=Math.round(count/max*100);
+    const isYours=name===myPick;
+    html+=`<div class="compare-row">
+      <span class="cmp-code">${getCode(name)}</span>
+      <span class="cmp-name">${name}</span>
+      <div class="cmp-bar-w"><div class="cmp-bar" style="width:${bw}%"></div></div>
+      <span class="cmp-pct">${pct}%</span>
+      <span class="cmp-yours">${isYours?'<span class="yours-tag">YOU</span>':''}</span>
+    </div>`;
+  });
+  html+=`</div>`;
+  document.getElementById('mc-results').innerHTML=html;
+}
+
+// --------------------------------------------------------------
+// NAV
+// --------------------------------------------------------------
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+}
+
+function gotoGroups(){
+  if(!modelReady){alert('Train the model first!');return;}
+  showPage('groups',document.getElementById('tab-groups'));
+  renderGroups();
+}
+
+function gotoBracket(){
+  if(!modelReady){alert('Train the model first!');return;}
+  const done='ABCDEFGHIJKL'.split('').every(g=>groupPicks[g].winner&&groupPicks[g].runner);
+  if(!done){alert('Pick a winner and runner-up for all 12 groups first!');return;}
+  buildBracket();
+  showPage('bracket',document.getElementById('tab-bracket'));
+  renderBracket();
+}
+
+// INIT
+resetElos();
+</script>
+</body>
+</html>
