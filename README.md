@@ -2,7 +2,7 @@
 
 I built this because world cup is starting june 11 and I wanted to see if I could predict who wins using actual machine learning!!
 
-live demo: coming soon (will add github pages link once deployed)
+live demo: https://ashmita-rawat.github.io/fifa-2026-ml-predictor/
 
 ---
 
