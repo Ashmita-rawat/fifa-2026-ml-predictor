@@ -1,6 +1,6 @@
 # FIFA World Cup 2026 - ML Predictor
 
-I built this because world cup is starting June 11 and I wanted to see if I could predict who wins using actual machine learning!!
+I built this because world cup is starting june 11 and I wanted to see if I could build something that uses ML concepts to predict who wins!!
 
 live demo: https://ashmita-rawat.github.io/fifa-2026-ml-predictor/
 
@@ -36,7 +36,8 @@ training via mini batch gradient descent
 loss function is binary cross entropy
 for simulation I ran monte carlo with 10,000 runs
 
-got about 80% accuracy on training data which I think is pretty good for football matches! Feel free to drop your opinions!
+got about 80% accuracy on training data - though to be fair the dataset is only 128 matches so take this with a pinch of salt.
+Feel free to drop your opinions!
 
 the weights the model learned:
 - elo gap matters most (approx 55% of prediction)
@@ -84,7 +85,7 @@ no npm install or anything, just open the html file
 
 ## background
 
-I have been getting into ML recently and thought - why not !! Will push more models!!
+I have been getting into ML recently and thought - why not!! still a lot to learn but this was a good starting point. next step is probably adding more world cup data (2014, 2010 etc) and doing a proper train/test split - will get to it!
 
 Took me a while to get the training loop working properly and the insight card explaining WHY the model picked a team was probably the hardest part
 
@@ -98,6 +99,8 @@ anyways hope its useful, open to feedback
 - no real time data (injuries, current form etc)
 - the monte carlo simulation doesnt account for draw probability perfectly
 - UI probably needs work on mobile
+- only 128 training matches - way too small for a proper ML model honestly
+- no train/test split - should have held out some matches for validation
 
 ---
 
